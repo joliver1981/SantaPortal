@@ -9,7 +9,10 @@ import numpy as np
 
 def add_noise_max(img):
     # Getting the dimensions of the image
-    row, col = img.shape
+    if len(img.shape) == 3:
+        row, col, _ = img.shape
+    else:
+        row, col = img.shape
 
     # Randomly pick some pixels in the
     # image for coloring them white
@@ -44,7 +47,10 @@ def add_noise_max(img):
 
 def add_noise(img):
     # Getting the dimensions of the image
-    row, col = img.shape
+    if len(img.shape) == 3:
+        row, col, _ = img.shape
+    else:
+        row, col = img.shape
 
     # Randomly pick some pixels in the
     # image for coloring them white
@@ -96,7 +102,17 @@ def open_portal():
     length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     random_start = int(random.uniform(0, length))
     total_frames = int(cfg.PORTAL_OPEN_MAX_SECS) * 10
-    msecs_between_frames = 1 # cfg.MSECS_PER_FRAME
+    msecs_between_frames = cfg.MSECS_PER_FRAME
+
+    frame_no = (random_start / (cfg.PORTAL_OPEN_MAX_SECS * fps))  # Used for jumping to frame
+
+    grey = int(round(random.uniform(0, 1)))
+    blur = int(round(random.uniform(0, 1)))
+    static = int(round(random.uniform(0, 1)))
+
+    print(86 * '=')
+    print(grey, blur, static)
+    print(86 * '=')
     print('FPS:', str(fps))
     print('Frames:', length)
     print('Start Frame:', random_start)
@@ -106,29 +122,51 @@ def open_portal():
     frame_count = 0
     while (cap.isOpened()):
         # Capture each frame
+        #cap.set(random_start, frame_no)
+
         ret, frame = cap.read()
+
         if ret == True:
             original_frame = frame.copy()
             frame_count_to_start += 1
             if frame_count_to_start >= random_start:
+                msecs_between_frames = cfg.MSECS_PER_FRAME
                 # Display the resulting frame
-                if cfg.ADD_STATIC_TO_IMAGE:
-                    frame = cv2.GaussianBlur(frame, (15, 15), cv2.BORDER_DEFAULT)
-                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                    frame = add_noise(frame)
+                if cfg.RANDOMIZE_IMAGE_ATTRIBUTES:
+                    if cfg.CONVERT_IMAGE_TO_GREY and grey == 1:
+                        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+                    if cfg.ADD_BLUR_TO_IMAGE and blur == 1:
+                        frame = cv2.GaussianBlur(frame, (15, 15), cv2.BORDER_DEFAULT)
+
+                    if cfg.ADD_STATIC_TO_IMAGE and static == 1:
+                        frame = add_noise(frame)
+                        msecs_between_frames = 1
+                else:
+                    if cfg.CONVERT_IMAGE_TO_GREY:
+                        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+                    if cfg.ADD_BLUR_TO_IMAGE:
+                        frame = cv2.GaussianBlur(frame, (15, 15), cv2.BORDER_DEFAULT)
+
+                    if cfg.ADD_STATIC_TO_IMAGE:
+                        frame = add_noise(frame)
+                        msecs_between_frames = 1
 
                 cv2.imshow('Frame', frame)
                 frame_count += 1
-                msecs_between_frames = cfg.MSECS_PER_FRAME
             else:
+                # Some noise
                 #frame = cv2.GaussianBlur(frame, (15, 15), cv2.BORDER_DEFAULT)
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                #frame = add_noise_max(frame)
-                
+                #frame = add_noise(frame)
+
                 # Complete noise
                 row, col = frame.shape
                 frame = np.random.random((row, col, 1)).astype(np.float32)
+
                 cv2.imshow('Frame', frame)
+                msecs_between_frames = 1
 
         if frame_count_to_start < random_start and frame_count_to_start % 10 == 0:
             print('Skipping frame:', frame_count_to_start)
