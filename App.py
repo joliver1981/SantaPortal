@@ -3,8 +3,9 @@ import cv2
 from numpy import random
 from time import sleep
 import playsound
-import winsound
 import numpy as np
+if cfg.WINDOWS_OS:
+    import winsound
 
 
 def add_noise_max(img):
@@ -91,8 +92,10 @@ def convert_frame(frame):
 
 def sound_alarm():
     print('Sounding Santa alarm...')
-    #playsound.playsound('sleigh-bells.mp3')
-    winsound.PlaySound(cfg.ALARM_SOUND_FILE, winsound.SND_ASYNC)
+    if cfg.WINDOWS_OS:
+        winsound.PlaySound(cfg.ALARM_SOUND_FILE, winsound.SND_ASYNC)
+    else:
+        playsound.playsound('sleigh-bells.mp3')
 
 
 def open_portal():
@@ -103,6 +106,7 @@ def open_portal():
     random_start = int(random.uniform(0, length))
     total_frames = int(cfg.PORTAL_OPEN_MAX_SECS) * 10
     msecs_between_frames = cfg.MSECS_PER_FRAME
+    initial_noise_frames = cfg.INITIAL_NOISE_FRAMES
 
     frame_no = (random_start / (cfg.PORTAL_OPEN_MAX_SECS * fps))  # Used for jumping to frame
 
@@ -120,16 +124,24 @@ def open_portal():
     # Read the entire file until it is completed
     frame_count_to_start = 0
     frame_count = 0
+
+    # Set resolution
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 854)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+
+    # Set starting frame
+    cap.set(1, random_start)
     while (cap.isOpened()):
         # Capture each frame
-        #cap.set(random_start, frame_no)
-
         ret, frame = cap.read()
+
+        cv2.namedWindow('SantaPortal', cv2.WINDOW_NORMAL)
+        cv2.resizeWindow('SantaPortal', 800, 480)
 
         if ret == True:
             original_frame = frame.copy()
             frame_count_to_start += 1
-            if frame_count_to_start >= random_start:
+            if frame_count_to_start >= initial_noise_frames:
                 msecs_between_frames = cfg.MSECS_PER_FRAME
                 # Display the resulting frame
                 if cfg.RANDOMIZE_IMAGE_ATTRIBUTES:
@@ -153,7 +165,7 @@ def open_portal():
                         frame = add_noise(frame)
                         msecs_between_frames = 1
 
-                cv2.imshow('Frame', frame)
+                cv2.imshow('SantaPortal', frame)
                 frame_count += 1
             else:
                 # Some noise
@@ -165,18 +177,18 @@ def open_portal():
                 row, col = frame.shape
                 frame = np.random.random((row, col, 1)).astype(np.float32)
 
-                cv2.imshow('Frame', frame)
+                cv2.imshow('SantaPortal', frame)
                 msecs_between_frames = 1
 
         if frame_count_to_start < random_start and frame_count_to_start % 10 == 0:
-            print('Skipping frame:', frame_count_to_start)
+            print('Skipping frame:', frame_count_to_start, 'of', random_start)
 
         if frame_count_to_start >= random_start and frame_count % 10 == 0:
             print('Showing frame:', frame_count)
 
         if frame_count >= total_frames:
             frame = convert_frame(original_frame)
-            cv2.imshow('Frame', frame)
+            cv2.imshow('SantaPortal', frame)
             print('Max frames reached, closing portal...')
 
         # Press Q on keyboard to exit
