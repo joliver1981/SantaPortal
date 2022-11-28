@@ -126,11 +126,16 @@ def sound_alarm():
     if cfg.WINDOWS_OS:
         winsound.PlaySound(cfg.ALARM_SOUND_FILE, winsound.SND_ASYNC)
     else:
-        playsound.playsound('sleigh-bells.mp3')
+        playsound.playsound(cfg.ALARM_SOUND_FILE)
 
 
 def open_portal():
     print('Opening Santa portal...')
+    if cfg.WINDOWS_OS:
+        winsound.PlaySound(cfg.PORTAL_OPEN_SOUND_FILE, winsound.SND_ASYNC)
+    else:
+        playsound.playsound(cfg.PORTAL_OPEN_SOUND_FILE)
+
     cap = cv2.VideoCapture(cfg.SANTA_PORTAL_VIDEO_FILE)
     fps = cap.get(cv2.CAP_PROP_FPS)
     length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -230,6 +235,12 @@ def open_portal():
             cap.release()
             # Closes all the frames
             cv2.destroyAllWindows()
+
+    print('Closing Santa portal...')
+    if cfg.WINDOWS_OS:
+        winsound.PlaySound(cfg.PORTAL_CLOSE_SOUND_FILE, winsound.SND_ASYNC)
+    else:
+        playsound.playsound(cfg.PORTAL_CLOSE_SOUND_FILE)
 
     
 def record_msg():
