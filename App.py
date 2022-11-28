@@ -56,7 +56,7 @@ def add_noise(img):
     # Randomly pick some pixels in the
     # image for coloring them white
     # Pick a random number between 300 and 10000
-    number_of_pixels = random.randint(300, 10000)
+    number_of_pixels = random.randint(300, 5000)
     for i in range(number_of_pixels):
         # Pick a random y coordinate
         y_coord = random.randint(0, row - 1)
@@ -70,7 +70,7 @@ def add_noise(img):
     # Randomly pick some pixels in
     # the image for coloring them black
     # Pick a random number between 300 and 10000
-    number_of_pixels = random.randint(300, 10000)
+    number_of_pixels = random.randint(300, 5000)
     for i in range(number_of_pixels):
         # Pick a random y coordinate
         y_coord = random.randint(0, row - 1)
@@ -82,6 +82,37 @@ def add_noise(img):
         img[y_coord][x_coord] = 0
 
     return img
+
+
+def add_noise2(img):
+    mean = 0
+    var = 0.1
+    sigma = var ** 0.5
+
+    if len(img.shape) == 3:
+        row, col, _ = img.shape
+        gaus_frame = np.random.random((row, col, 3))#.astype(np.float32)
+        print('gaus_frame.shape', gaus_frame.shape)
+        #gaus_frame = np.expand_dims(gaus_frame, 2)
+        #print(gaus_frame.shape)
+        print('img.shape', img.shape)
+        gauss = np.random.normal(mean, sigma, (row, col, 3))
+        gauss = gauss.reshape(row, col, 3)
+        im = np.empty((row, col, 3), np.uint8)
+    else:
+        row, col = img.shape
+        gaus_frame = np.random.random((row, col))#.astype(np.float32)
+        print('gaus_frame.shape', gaus_frame.shape)
+        print('img.shape', img.shape)
+        gauss = np.random.normal(mean, sigma, (row, col))
+        gauss = gauss.reshape(row, col)
+        im = np.empty((row, col), np.uint8)
+
+    #frame = cv2.addWeighted(img, 0.5, gaus_frame.astype('uint8'), 0.5, 0)
+    #frame = img + gauss
+    frame = img + cv2.randn(im, (0), (20))
+
+    return frame
 
 
 def convert_frame(frame):
@@ -153,7 +184,7 @@ def open_portal():
 
                     if cfg.ADD_STATIC_TO_IMAGE and static == 1:
                         frame = add_noise(frame)
-                        msecs_between_frames = 1
+                        msecs_between_frames = cfg.MSECS_PER_FRAME_NOISE
                 else:
                     if cfg.CONVERT_IMAGE_TO_GREY:
                         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -163,7 +194,7 @@ def open_portal():
 
                     if cfg.ADD_STATIC_TO_IMAGE:
                         frame = add_noise(frame)
-                        msecs_between_frames = 1
+                        msecs_between_frames = cfg.MSECS_PER_FRAME_NOISE
 
                 cv2.imshow('SantaPortal', frame)
                 frame_count += 1
