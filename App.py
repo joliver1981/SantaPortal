@@ -56,7 +56,7 @@ def add_noise(img):
     # Randomly pick some pixels in the
     # image for coloring them white
     # Pick a random number between 300 and 10000
-    number_of_pixels = random.randint(300, 5000)
+    number_of_pixels = random.randint(cfg.NOISE_LIMIT_MIN, cfg.NOISE_LIMIT_MAX)
     for i in range(number_of_pixels):
         # Pick a random y coordinate
         y_coord = random.randint(0, row - 1)
@@ -70,7 +70,7 @@ def add_noise(img):
     # Randomly pick some pixels in
     # the image for coloring them black
     # Pick a random number between 300 and 10000
-    number_of_pixels = random.randint(300, 5000)
+    number_of_pixels = random.randint(cfg.NOISE_LIMIT_MIN, cfg.NOISE_LIMIT_MAX)
     for i in range(number_of_pixels):
         # Pick a random y coordinate
         y_coord = random.randint(0, row - 1)
