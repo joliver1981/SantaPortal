@@ -6,6 +6,24 @@ import playsound
 import numpy as np
 if cfg.WINDOWS_OS:
     import winsound
+else:
+    import pygame
+
+
+def play_sound(sound_file):
+    if cfg.WINDOWS_OS:
+        winsound.PlaySound(sound_file, winsound.SND_ASYNC)
+    else:
+        if cfg.USE_PYGAME_AUDIO:
+            pygame.mixer.init()
+            pygame.mixer.music.load(sound_file)
+            pygame.mixer.music.set_volume(1.0)
+            pygame.mixer.music.play()
+
+            while pygame.mixer.music.get_busy() == True:
+                pass
+        else:
+            playsound.playsound(sound_file)
 
 
 def add_noise_max(img):
@@ -123,18 +141,12 @@ def convert_frame(frame):
 
 def sound_alarm():
     print('Sounding Santa alarm...')
-    if cfg.WINDOWS_OS:
-        winsound.PlaySound(cfg.ALARM_SOUND_FILE, winsound.SND_ASYNC)
-    else:
-        playsound.playsound(cfg.ALARM_SOUND_FILE)
+    play_sound(cfg.ALARM_SOUND_FILE)
 
 
 def open_portal():
     print('Opening Santa portal...')
-    if cfg.WINDOWS_OS:
-        winsound.PlaySound(cfg.PORTAL_OPEN_SOUND_FILE, winsound.SND_ASYNC)
-    else:
-        playsound.playsound(cfg.PORTAL_OPEN_SOUND_FILE)
+    play_sound(cfg.PORTAL_OPEN_SOUND_FILE)
 
     cap = cv2.VideoCapture(cfg.SANTA_PORTAL_VIDEO_FILE)
     fps = cap.get(cv2.CAP_PROP_FPS)
@@ -237,10 +249,7 @@ def open_portal():
             cv2.destroyAllWindows()
 
     print('Closing Santa portal...')
-    if cfg.WINDOWS_OS:
-        winsound.PlaySound(cfg.PORTAL_CLOSE_SOUND_FILE, winsound.SND_ASYNC)
-    else:
-        playsound.playsound(cfg.PORTAL_CLOSE_SOUND_FILE)
+    play_sound(cfg.PORTAL_CLOSE_SOUND_FILE)
 
     
 def record_msg():
