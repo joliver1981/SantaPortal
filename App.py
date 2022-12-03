@@ -183,8 +183,8 @@ def open_portal():
         # Capture each frame
         ret, frame = cap.read()
 
-        cv2.namedWindow('SantaPortal', cv2.WINDOW_NORMAL)
-        cv2.resizeWindow('SantaPortal', 800, 480)
+        cv2.namedWindow(cfg.PORTAL_WINDOW_NAME, cv2.WINDOW_NORMAL)
+        cv2.resizeWindow(cfg.PORTAL_WINDOW_NAME, 800, 480)
 
         if ret == True:
             original_frame = frame.copy()
@@ -213,7 +213,8 @@ def open_portal():
                         frame = add_noise(frame)
                         msecs_between_frames = cfg.MSECS_PER_FRAME_NOISE
 
-                cv2.imshow('SantaPortal', frame)
+                cv2.imshow(cfg.PORTAL_WINDOW_NAME, frame)
+                cv2.moveWindow(cfg.PORTAL_WINDOW_NAME, 0, 0)
                 frame_count += 1
             else:
                 # Some noise
@@ -225,7 +226,8 @@ def open_portal():
                 row, col = frame.shape
                 frame = np.random.random((row, col, 1)).astype(np.float32)
 
-                cv2.imshow('SantaPortal', frame)
+                cv2.imshow(cfg.PORTAL_WINDOW_NAME, frame)
+                cv2.moveWindow(cfg.PORTAL_WINDOW_NAME, 0, 0)
                 msecs_between_frames = 1
 
         if frame_count_to_start < random_start and frame_count_to_start % 10 == 0:
@@ -237,6 +239,8 @@ def open_portal():
         if frame_count >= total_frames:
             frame = convert_frame(original_frame)
             cv2.imshow('SantaPortal', frame)
+            cv2.moveWindow(cfg.PORTAL_WINDOW_NAME, 0, 0)
+            cv2.waitKey(10)
             print('Max frames reached, closing portal...')
 
         # Press Q on keyboard to exit
@@ -248,19 +252,39 @@ def open_portal():
             # Closes all the frames
             cv2.destroyAllWindows()
 
-    print('Closing Santa portal...')
-    play_sound(cfg.PORTAL_CLOSE_SOUND_FILE)
-
     
 def record_msg():
     print('Recording message to Santa...')
 
 
+def show_default_screen():
+    cap = cv2.VideoCapture(cfg.PORTAL_CLOSED_DEFAULT_IMAGE)
+    ret, frame = cap.read()
+    cv2.namedWindow(cfg.PORTAL_WINDOW_NAME, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(cfg.PORTAL_WINDOW_NAME, 800, 480)
+    cv2.imshow(cfg.PORTAL_WINDOW_NAME, frame)
+    #cv2.setWindowProperty(cfg.PORTAL_WINDOW_NAME, cv2.WND_PROP_TOPMOST, 1)
+    cv2.moveWindow(cfg.PORTAL_WINDOW_NAME, 0, 0)
+    cv2.waitKey(25)
+    
+    
+def close_portal():
+    print('Closing Santa portal...')
+    play_sound(cfg.PORTAL_CLOSE_SOUND_FILE)
+    show_default_screen()
+    print('Santa Portal closed.')
+
+
+# Init
+show_default_screen()
+
+# Main Loop
 while True:
     sleeptime = random.uniform(cfg.MIN_SLEEP_SECS, cfg.MAX_SLEEP_SECS)
     print("Sleeping for:", sleeptime, "seconds")
     sleep(sleeptime)
-    print("Sleeping is over...")
+    print("Waking up...")
     sound_alarm()
     open_portal()
+    close_portal()
 
